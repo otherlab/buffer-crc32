@@ -66,7 +66,12 @@ function uint8ArrayToInt32(array) {
 
 function _crc32(array, previous) {
   if (!array instanceof Uint8Array) {
-    array = new Uint8Array(buf);
+    if (array.buffer instanceof ArrayBuffer) { // array is a TypedArray
+      array = new Uint8Array(array.buffer);
+    }
+    else { // array is a JS array
+      array = new Uint8Array(buf);
+    }
   }
   if (previous instanceof Uint8Array) {
     previous = uint8ArrayToInt32(previous);
