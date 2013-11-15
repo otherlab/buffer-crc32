@@ -1,5 +1,3 @@
-var Buffer = require('buffer').Buffer;
-
 var CRC_TABLE = [
   0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419,
   0x706af48f, 0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4,
@@ -55,28 +53,33 @@ var CRC_TABLE = [
   0x2d02ef8d
 ];
 
-function bufferizeInt(num) {
-  var tmp = Buffer(4);
-  tmp.writeInt32BE(num, 0);
-  return tmp;
+function int32ToUint8Array(num) {
+  var tmp = new Int32Array(1);
+  tmp[0] = num;
+  return new Uint8Array(tmp.buffer);
 }
 
-function _crc32(buf, previous) {
-  if (!Buffer.isBuffer(buf)) {
-    buf = Buffer(buf);
+function uint8ArrayToInt32(array) {
+  var tmp = new Int32Array(array.buffer);
+  return tmp[0];
+}
+
+function _crc32(array, previous) {
+  if (!array instanceof Uint8Array) {
+    array = new Uint8Array(buf);
   }
-  if (Buffer.isBuffer(previous)) {
-    previous = previous.readUInt32BE(0);
+  if (previous instanceof Uint8Array) {
+    previous = uint8ArrayToInt32(previous);
   }
   var crc = ~~previous ^ -1;
-  for (var n = 0; n < buf.length; n++) {
-    crc = CRC_TABLE[(crc ^ buf[n]) & 0xff] ^ (crc >>> 8);
+  for (var n = 0; n < array.length; n++) {
+    crc = CRC_TABLE[(crc ^ array[n]) & 0xff] ^ (crc >>> 8);
   }
   return (crc ^ -1);
 }
 
 function crc32() {
-  return bufferizeInt(_crc32.apply(null, arguments));
+  return int32ToUint8Array(_crc32.apply(null, arguments));
 }
 crc32.signed = function () {
   return _crc32.apply(null, arguments);
