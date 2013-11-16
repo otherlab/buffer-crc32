@@ -53,44 +53,20 @@ var CRC_TABLE = [
   0x2d02ef8d
 ];
 
-function int32ToUint8Array(num) {
-  var tmp = new Int32Array(1);
-  tmp[0] = num;
-  return new Uint8Array(tmp.buffer);
-}
-
-function uint8ArrayToInt32(array) {
-  var tmp = new Int32Array(array.buffer);
-  return tmp[0];
-}
-
-function _crc32(array, previous) {
-  if (!array instanceof Uint8Array) {
-    if (array.buffer instanceof ArrayBuffer) { // array is a TypedArray
+module.exports = function crc32(array, previous) {
+  if (!(array instanceof Uint8Array)) {
+    // array is a TypedArray
+    if (array.buffer instanceof ArrayBuffer) {
       array = new Uint8Array(array.buffer);
     }
-    else { // array is a JS array
-      array = new Uint8Array(buf);
+    // array is a JS array or ArrayBuffer
+    else {
+      array = new Uint8Array(array);
     }
-  }
-  if (previous instanceof Uint8Array) {
-    previous = uint8ArrayToInt32(previous);
   }
   var crc = ~~previous ^ -1;
   for (var n = 0; n < array.length; n++) {
     crc = CRC_TABLE[(crc ^ array[n]) & 0xff] ^ (crc >>> 8);
   }
   return (crc ^ -1);
-}
-
-function crc32() {
-  return int32ToUint8Array(_crc32.apply(null, arguments));
-}
-crc32.signed = function () {
-  return _crc32.apply(null, arguments);
 };
-crc32.unsigned = function () {
-  return _crc32.apply(null, arguments) >>> 0;
-};
-
-module.exports = crc32;
